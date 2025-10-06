@@ -1,96 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vietnam Provinces Map</title>
+<html>
+  <head>
+    <title>Province Locator with Google Maps</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-        }
-        #map {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            background-color: #d4f1f4;
-            border: 2px solid #1e90ff;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .province {
-            position: absolute;
-            background-color: rgba(30, 144, 255, 0.6);
-            border: 1px solid #1e90ff;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .province:hover {
-            background-color: rgba(255, 99, 71, 0.8);
-        }
-        .tooltip {
-            position: absolute;
-            background-color: #333;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            visibility: hidden;
-        }
+      /* Styles for the map and input field */
+      #map {
+        height: 500px;
+        width: 100%;
+      }
+      #search-container {
+        margin: 20px;
+      }
+      input[type="text"] {
+        padding: 10px;
+        width: 300px;
+        font-size: 16px;
+      }
+      button {
+        padding: 10px;
+        font-size: 16px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
-    <div id="map">
-        <!-- Provinces -->
-        <div class="province" style="top: 50px; left: 100px; width: 80px; height: 50px;" data-name="Hanoi"></div>
-        <div class="province" style="top: 100px; left: 150px; width: 70px; height: 40px;" data-name="Bac Ninh"></div>
-        <div class="province" style="top: 150px; left: 200px; width: 90px; height: 60px;" data-name="Hai Phong"></div>
-        <div class="province" style="top: 200px; left: 180px; width: 100px; height: 50px;" data-name="Ninh Binh"></div>
-        <div class="province" style="top: 300px; left: 100px; width: 120px; height: 80px;" data-name="Vinh Phuc"></div>
-        <div class="province" style="top: 250px; left: 300px; width: 140px; height: 90px;" data-name="Da Nang"></div>
-        <div class="province" style="top: 350px; left: 400px; width: 160px; height: 100px;" data-name="Ho Chi Minh City"></div>
-        <div class="province" style="top: 320px; left: 250px; width: 100px; height: 60px;" data-name="Dong Thap"></div>
-        <div class="province" style="top: 400px; left: 350px; width: 90px; height: 50px;" data-name="Dong Nai"></div>
-        <div class="province" style="top: 450px; left: 300px; width: 110px; height: 70px;" data-name="Long An"></div>
-        <div class="province" style="top: 500px; left: 200px; width: 130px; height: 60px;" data-name="Vinh Long"></div>
-        <div class="province" style="top: 200px; left: 50px; width: 100px; height: 50px;" data-name="Gia Lai"></div>
-        <div class="province" style="top: 150px; left: 450px; width: 100px; height: 60px;" data-name="Tay Ninh"></div>
-        <div class="province" style="top: 100px; left: 400px; width: 100px; height: 50px;" data-name="Tuyen Quang"></div>
-        <div class="province" style="top: 50px; left: 500px; width: 120px; height: 70px;" data-name="Lao Cai"></div>
-        <div class="province" style="top: 350px; left: 150px; width: 130px; height: 70px;" data-name="Khanh Hoa"></div>
-        <div class="province" style="top: 200px; left: 300px; width: 140px; height: 80px;" data-name="Binh Duong"></div>
-        <div id="tooltip" class="tooltip"></div>
+  </head>
+  <body>
+    <h3>Search for a Province</h3>
+    <div id="search-container">
+      <input type="text" id="province" placeholder="Enter a province name..." />
+      <button onclick="findProvince()">Search</button>
     </div>
+    <div id="map"></div>
 
     <script>
-        const provinces = document.querySelectorAll('.province');
-        const tooltip = document.getElementById('tooltip');
+      let map;
+      let geocoder;
 
-        provinces.forEach(province => {
-            province.addEventListener('mouseover', (e) => {
-                const name = e.target.getAttribute('data-name');
-                tooltip.textContent = name;
-                tooltip.style.visibility = 'visible';
-                tooltip.style.top = `${e.pageY - 30}px`;
-                tooltip.style.left = `${e.pageX + 10}px`;
-            });
-
-            province.addEventListener('mousemove', (e) => {
-                tooltip.style.top = `${e.pageY - 30}px`;
-                tooltip.style.left = `${e.pageX + 10}px`;
-            });
-
-            province.addEventListener('mouseout', () => {
-                tooltip.style.visibility = 'hidden';
-            });
+      function initMap() {
+        // Initialize the map
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 14.0583, lng: 108.2772 }, // Default: Vietnam's approximate center
+          zoom: 6,
         });
+
+        // Initialize the geocoder
+        geocoder = new google.maps.Geocoder();
+      }
+
+      function findProvince() {
+        // Get the province name from the input
+        const province = document.getElementById("province").value;
+
+        if (!province) {
+          alert("Please enter a province name.");
+          return;
+        }
+
+        // Use the geocoder to find the location
+        geocoder.geocode({ address: province }, (results, status) => {
+          if (status === "OK") {
+            // Center the map on the result
+            map.setCenter(results[0].geometry.location);
+            map.setZoom(10);
+
+            // Add a marker at the result location
+            new google.maps.Marker({
+              map: map,
+              position: results[0].geometry.location,
+            });
+          } else {
+            alert("Geocode was not successful for the following reason: " + status);
+          }
+        });
+      }
     </script>
-</body>
+
+    <!-- Google Maps JavaScript API -->
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+    ></script>
+  </body>
 </html>
