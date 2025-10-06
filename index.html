@@ -4,6 +4,7 @@
     <title>Interactive Real Map</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Leaflet CSS -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -11,6 +12,7 @@
       crossorigin=""
     />
     <style>
+      /* Styles for the map and input field */
       #map {
         height: 600px;
         width: 90%;
@@ -27,6 +29,7 @@
     <h3>Interactive Real Map with Provinces</h3>
     <div id="map"></div>
 
+    <!-- Leaflet JavaScript -->
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-o9N1jXsgE4fF9XZ+f4yXjA7l+qeA5V7h0zv+Q5s8g1w="
@@ -42,7 +45,7 @@
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      // Example GeoJSON data for provinces (replace with real GeoJSON)
+      // Example GeoJSON data for provinces (replace this with real GeoJSON data)
       const provinces = {
         type: "FeatureCollection",
         features: [
@@ -83,6 +86,10 @@
 
       // Add GeoJSON to the map
       L.geoJSON(provinces, {
+        style: {
+          color: "#ff7800",
+          weight: 2,
+        },
         onEachFeature: (feature, layer) => {
           layer.bindPopup(`<strong>${feature.properties.name}</strong>`);
         },
